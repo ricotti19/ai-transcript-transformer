@@ -2,11 +2,11 @@
 
 AI supported audio to automatic text transcript (PDF) processing pipeline designed with localized multi-region backend corridors (Singapore, UAE, India) for data-sovereignty compliant content ingestion.
 
+(Must upload or drag-and-drop any audio file, enter name for identification, select region of business)
+
 ## 🛠️ System Architecture & Core Concept
 
-This system is built as an isolated enterprise proof-of-concept simulating a high-throughput, localized audio intelligence ingestion network. It enforces **strict environmental parity** and regional routing topology across three specific data compliance corridors:
-
-Singapore Node, UAE Node, India Node
+This system is built as an isolated enterprise proof-of-concept simulating a high-throughput, localized audio intelligence ingestion network. It enforces **strict environmental parity** and regional routing topology across three specific data compliance corridors: Singapore Node, UAE Node, India Node
 
 ### Architectural Highlights
 - **Data Sovereignty & Mocking Validation**: Explicitly isolates routing configurations locally to run structural validation without incurring cloud egress penalties or spinning up redundant cross-region instances.
@@ -36,7 +36,6 @@ ai-transcript-transformer/
 │   │   └── index.js
 │   ├── package.json
 │   └── package-lock.json
-├── .gitignore
 ```
 
 ### 🛠️  Installation & Setup
