@@ -1,6 +1,6 @@
 # AI Transcript Transformer
 
-AI supported audio to automatic text transcript (PDF) processing pipeline designed with localized multi-region backend corridors (Singapore, UAE, India) for data-sovereignty compliant content ingestion.
+AI supported audio to automatic text transcript (PDF) processing pipeline designed with localized multi-region backend corridors for data-sovereignty compliant content ingestion.
 
 (Must upload or drag-and-drop any audio file, enter name for identification, select region of business)
 
