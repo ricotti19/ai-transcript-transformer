@@ -10,12 +10,15 @@ This system is built as an isolated enterprise proof-of-concept simulating a hig
 
 ### Architectural Highlights
 - **Data Sovereignty & Mocking Validation**: Explicitly isolates routing configurations locally to run structural validation without incurring cloud egress penalties or spinning up redundant cross-region instances.
+  
 - **Fail-Safe Directory Initialization**: The backend automatically asserts and creates local transient storage dependencies on launch, eliminating system initialization gaps.
 
 ## 🚀 Technical Stack
 
 - **Frontend:** React.js, Custom Layouts (Optimized for viewport containment & low-latency UI responsiveness).
+
 - **Backend:** Node.js, Express microservices, native File System management (`fs`), pathing modules.
+
 - **Data Intake:** Multi-tenant binary streams via file-upload multi-part buffers.
 
 ---
@@ -59,15 +62,20 @@ Create a unique URL and in .env, list as WEBHOOK_URL=........                   
 
 2. Configure the Backend Gateway
 `cd backend`
+
 `npm install`
+
 `npm install jspdf`
+
 `npm install axios`
+
 `npm start`
 
-3. Initialize the Frontend Workspace
+4. Initialize the Frontend Workspace
 
 Open a separate terminal window or pane and type:
 `cd frontend`
+
 `npm start`
 
 localhost:3000 will open up automatically in Chrome
