@@ -39,17 +39,18 @@ ai-transcript-transformer/
 ```
 
 ### 🛠️  Installation & Setup
-1. Clone the repo and set up .env file:
 
-`git clone https://github.com/ricotti19/ai-transcript-transformer.git`
+Clone the repo and set up .env file:
 
-Create a new file in the root directory named exactly `.env`.
+* `git clone https://github.com/ricotti19/ai-transcript-transformer.git`
 
-First line should be: PORT=5000
+* Create a new file in the root directory named exactly `.env`.
 
-Grab your key from: https://www.assemblyai.com/ (Developer Dashboard) after logging in and clicking "API Keys"
+* First line should be: PORT=5000
 
-.env format: ASSEMBLYAI_API_KEY=your_assemblyai_key_here                            <------- replace with your key on right
+* Grab your key from: https://www.assemblyai.com/ (Developer Dashboard) after logging in and clicking "API Keys"
+
+* .env format: ASSEMBLYAI_API_KEY=your_assemblyai_key_here                            <------- replace with your key on right
 
 # Simulated Webhook & CRM Ingestion
 
