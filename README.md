@@ -23,14 +23,20 @@ Singapore Node, UAE Node, India Node
 ## 📦 Project Structure
 ```
 ai-transcript-transformer/
-├── frontend/             # React Client Interface
-│   ├── build/            # Static production production artifacts
-│   ├── src/              # Application UI logic
-│   └── package.json
-└── backend/              # Node.js Core API Gateway
-    ├── uploads/          # Transient storage (Auto-generated on startup, git-ignored)
-    ├── server.js         # Entrypoint and corridor routing engine
-    └── package.json
+├── backend/
+│   ├── server.js
+│   ├── package.json
+│   └── package-lock.json
+├── frontend/
+│   ├── public/
+│   │   └── index.html
+│   ├── src/
+│   │   ├── App.css
+│   │   ├── App.js
+│   │   └── index.js
+│   ├── package.json
+│   └── package-lock.json
+├── .gitignore
 ```
 
 ### 🛠️  Installation & Setup
@@ -66,3 +72,6 @@ Open a separate terminal window or pane and type:
 `npm start`
 
 localhost:3000 will open up automatically in Chrome
+
+Interface: <img width="1914" height="1158" alt="image" src="https://github.com/user-attachments/assets/92a6c81c-b41c-4509-a6c4-b8e6ef183f7c" />
+
