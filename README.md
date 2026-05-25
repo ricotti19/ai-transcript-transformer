@@ -38,9 +38,9 @@ ai-transcript-transformer/
 │   └── package-lock.json
 ```
 
-### 🛠️  Installation & Setup
+## 🛠️  Installation & Setup
 
-Clone the repo and set up .env file:
+### Clone the repo and set up .env file:
 
 * `git clone https://github.com/ricotti19/ai-transcript-transformer.git`
 
@@ -52,31 +52,35 @@ Clone the repo and set up .env file:
 
 * .env format: ASSEMBLYAI_API_KEY=your_assemblyai_key_here                            <------- replace with your key on right
 
-# Simulated Webhook & CRM Ingestion
+### Simulated Webhook & CRM Ingestion
 
-Setup webhooks in: Webhook.site
+* Setup webhooks in: Webhook.site
 
-Create a unique URL and in .env, list as WEBHOOK_URL=........                       <------ replace with your URL on right
+* Create a unique URL and in .env, list as WEBHOOK_URL=........                       <------ replace with your URL on right
 
-2. Configure the Backend Gateway
-`cd backend`
+### Configure the Backend Gateway
 
-`npm install`
+* `cd backend`
 
-`npm install jspdf`
+* `npm install`
 
-`npm install axios`
+* `npm install jspdf`
 
-`npm start`
+* `npm install axios`
 
-4. Initialize the Frontend Workspace
+* `npm start`
 
-Open a separate terminal window or pane and type:
-`cd frontend`
+### Initialize the Frontend Workspace
 
-`npm start`
+* Open a separate terminal window or pane and type:
 
-localhost:3000 will open up automatically in Chrome
+* `cd frontend`
 
-Interface: <img width="1914" height="1158" alt="image" src="https://github.com/user-attachments/assets/92a6c81c-b41c-4509-a6c4-b8e6ef183f7c" />
+* `npm start`
+
+* localhost:3000 will open up automatically in Chrome
+
+### Interface: 
+
+<img width="1914" height="1158" alt="image" src="https://github.com/user-attachments/assets/92a6c81c-b41c-4509-a6c4-b8e6ef183f7c" />
 
