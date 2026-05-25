@@ -1,0 +1,254 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --bg-color: #00261a;    
+  --bg-gradient: linear-gradient(135deg, rgba(36, 143, 100, 1) 0%, rgba(20, 80, 56, 1) 100%);     
+  
+  --card-bg: rgba(0, 255, 184, 0.15);  
+  
+  --accent-color: #10b981;       
+  --accent-hover: #059669;      
+  
+  --text-main: #f9fafb;
+  --text-muted: #a7f3d0;     
+  --border-color: rgba(16, 185, 129, 0.25); 
+  --input-bg: rgba(17, 24, 39, 0.6);       
+  --focus-glow: rgba(16, 185, 129, 0.3);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-color); 
+  color: var(--text-main);
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.app-container {
+  background-color: linear-gradient(135deg, #10b981 0%, #016639 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 10vh;
+  padding: 10px 20px;
+  box-sizing: border-box;
+}
+
+/* --- HEADER CONTAINER AND TEXT SCALING --- */
+.app-header {
+  text-align: center;
+  margin-bottom: 1rem; 
+  width: 100%;
+}
+
+.app-header h1 {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 800;
+  font-size: 3.8rem; 
+  letter-spacing: -0.04em;
+  margin-top: 0;
+  margin-bottom: 0.85rem;
+  background: linear-gradient(135deg, #10b981 0%, #016639 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.app-header p {
+  font-family: 'Manrope', sans-serif;
+  color: var(--text-muted); 
+  font-size: 1.4rem; 
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  margin-top: 0;
+  margin-bottom: 0.6rem;
+}
+
+.app-header .app-subheader {
+  font-family: 'Manrope', sans-serif;
+  font-size: 1.35rem; 
+  font-weight: 600;
+  color: #34d399; 
+  margin-top: 0;
+  letter-spacing: -0.01em;
+  opacity: 1;
+}
+
+/* --- MAIN INTERFACE STRUCTURE --- */
+.main-content {
+  width: 100%;
+  max-width: 650px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 24px; /* rounded edges for the overall layout card */
+  padding: 2.5rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+  box-sizing: border-box;
+
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.upload-form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.input-group {
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.input-group label {
+  font-family: 'Manrope', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #e5e7eb;
+  letter-spacing: -0.01em;
+}
+
+.text-field, .select-field {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 500;
+  font-size: 1rem;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px; 
+  padding: 0.85rem 1rem;
+  color: var(--text-main);
+  outline: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.text-field::placeholder {
+  color: #4b5563;
+}
+
+.text-field:focus, .select-field:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 4px var(--focus-glow);
+}
+
+.file-group {
+  margin-top: 0.5rem;
+}
+
+/* 1. Vaporize the default browser upload string entirely */
+.hidden-file-input {
+  display: none;
+}
+
+/* 2. Turn the parent wrapper into a gorgeous dashed upload deck */
+.custom-file-upload {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: linear-gradient(135deg, #10b981 0%, #016639 100%);
+  border: 2px dashed rgba(16, 185, 129, 0.4);
+  padding: 2.2rem 1.5rem;
+  border-radius: 16px; 
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease-in-out;
+}
+
+.custom-file-upload:hover {
+  border-color: var(--accent-color);
+  background-color: rgba(16, 185, 129, 0.08);
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+}
+
+.upload-dropzone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.upload-icon {
+  font-size: 1.8rem;
+}
+
+.upload-text {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 500;
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* Base state of file upload housing box */
+.upload-zone {
+  border: 2px dashed rgba(0, 255, 184, 0.2);
+  padding: 2.5rem;
+  border-radius: 12px;
+  text-align: center;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(4, 18, 10, 0.4);
+}
+
+.upload-zone.dragging {
+  border-color: #00FFb8;
+  background: rgba(0, 255, 184, 0.08);
+  box-shadow: 0 0 20px rgba(0, 255, 184, 0.25);
+  transform: scale(1.02); /* Subtle structural pop up */
+}
+
+/* --- SUBMIT ACTIONS --- */
+.submit-btn {
+  display: block;
+  width: 100%;
+  padding: 14px 24px; 
+  font-size: 1.15rem;
+  cursor: pointer;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 700; 
+  letter-spacing: -0.01em;
+  margin-top: 0.5rem;
+  background-color: #00261a; 
+  color: #ffffff;
+  border: none;               
+  border-radius: 12px;       
+  transition: background-color 0.2s ease-in-out;
+}
+
+.submit-btn:hover {
+  background-color: var(--accent-hover);
+}
+
+/* --- STRUCTURED TRANSLATION OUTPUT WINDOW --- */
+.transcript-box {
+  background-color: linear-gradient(135deg, #10b981 0%, #016639 100%);
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.transcript-box h3 {
+  font-family: 'Manrope', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  background-color: linear-gradient(135deg, #10b981 0%, #016639 100%);
+  color: #059669;
+  margin-top: 0;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.transcript-box p {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 400;
+  font-size: 1.05rem; 
+  background-color: linear-gradient(135deg, #10b981 0%, #016639 100%);
+  padding: 1.25rem;
+  border-radius: 14px; 
+  border: 1px solid var(--border-color);
+  line-height: 1.7;
+  color: #e5e7eb;
+  white-space: pre-wrap;
+}
