@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios'; // Integrated for streaming upload metrics
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import './App.css';
@@ -9,16 +10,16 @@ function App() {
   const [corridor, setCorridor] = useState('');
   const [transcript, setTranscript] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isDragging, setIsDragging] = useState(false); // New state to manage hover visualization
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0); // New state to manage progress percentage
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
 
-  // Drag and Drop Event Interceptors with Propagation Overrides
   const handleDragOver = (e) => {
     e.preventDefault();
-    e.stopPropagation(); // Stops the browser from intercepting the asset natively
+    e.stopPropagation();
     setIsDragging(true);
   };
 
@@ -30,13 +31,11 @@ function App() {
 
   const handleDrop = (e) => {
     e.preventDefault();
-    e.stopPropagation(); // Forces the element box to maintain capture authority
+    e.stopPropagation();
     setIsDragging(false);
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const droppedFile = e.dataTransfer.files[0];
-      
-      // FORCE ACCEPT PIPELINE: Bypasses rigid internal browser MIME type string maps
       setFile(droppedFile);
       console.log(`[DRAG & DROP FORCE SUCCESS] Injected asset state container: ${droppedFile.name}`);
     }
@@ -44,28 +43,24 @@ function App() {
 
   // ISOLATED IN-MEMORY PRINT ENGINE FOR PDF LAYOUTS
   const generatePDF = async (transcriptText, clientName, operationalCorridor) => {
-    // 1. Create a decoupled print structural container dynamically inside isolated script memory
     const printContainer = document.createElement('div');
-    
-    // 2. Map strict layout styles to emulate a proper high-fidelity A4 page frame layout
+   
     printContainer.style.position = 'fixed';
     printContainer.style.top = '-9999px';
     printContainer.style.left = '-9999px';
-    printContainer.style.width = '794px'; // Standard pixel width ratio for precise printing layouts
+    printContainer.style.width = '794px';
     printContainer.style.padding = '60px';
     printContainer.style.backgroundColor = '#ffffff';
     printContainer.style.color = '#1e293b';
     printContainer.style.fontFamily = "'Manrope', sans-serif";
     printContainer.style.boxSizing = 'border-box';
 
-    // 3. Inject the clean structure markup with customizable inline font sizes
-    // Keep the transcript paragraph tag on a single flat line to prevent pre-wrap indentation bugs
     printContainer.innerHTML = `
       <h1 style="font-size: 26px; font-weight: 800; margin: 0 0 8px 0; color: #0f172a; letter-spacing: -0.02em;">
         AI TRANSCRIPT ARCHIVE REPORT
       </h1>
       <div style="width: 100%; height: 3px; background-color: #10b981; margin-bottom: 24px;"></div>
-      
+     
       <div style="font-size: 14px; color: #10b981; line-height: 1.8; margin-bottom: 24px;">
         <div><strong>Generated On:</strong> ${new Date().toLocaleDateString()}</div>
         <div><strong>Assigned Lead:</strong> ${clientName || "Unassigned Inbound"}</div>
@@ -73,25 +68,23 @@ function App() {
       </div>
 
       <div style="width: 100%; height: 1px; background-color: #e2e2e2; margin-bottom: 24px;"></div>
-      
+     
       <h2 style="font-size: 18px; font-weight: 700; color: #1e293b; margin: 0 0 12px 0;">
         Voice-to-Text Transcript
       </h2>
       <p style="font-size: 14px; color: #334155; line-height: 1.8; text-align: justify; white-space: pre-wrap; margin: 0;">${transcriptText}</p>
     `;
 
-    // 4. Attach container frame context directly to body layer
     document.body.appendChild(printContainer);
 
     try {
       const canvas = await html2canvas(printContainer, {
-        scale: 2, // High resolution pixel scaling ratio
+        scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff'
       });
 
-      // 5. Instantly wipe container completely from the live app DOM tree
       document.body.removeChild(printContainer);
 
       const imgData = canvas.toDataURL('image/jpeg', 1.0);
@@ -123,7 +116,8 @@ function App() {
     }
   };
 
-  const handleSubmit = async (e) => {
+
+const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file || !username || !corridor) {
       return alert('Please ensure all required fields are filled out properly!');
@@ -131,32 +125,51 @@ function App() {
 
     setLoading(true);
     setTranscript('');
+    setUploadProgress(0); // Clear track on run
 
     const formData = new FormData();
     formData.append('audio', file);
     formData.append('username', username);
     formData.append('corridor', corridor);
 
+    // UNIFORM DECAY ENGINE
+    const progressInterval = setInterval(() => {
+      setUploadProgress((prev) => {
+        if (prev >= 99) {
+          clearInterval(progressInterval);
+          return 99; // Smooth ceiling until network completely settles
+        }
+       
+        // Uniform dynamic stepping logic
+        if (prev < 50) return prev + 2;      // Steady crawl to 50%
+        if (prev < 80) return prev + 1;      // Gradual crawl to 80%
+        return prev + 0.5;                   // Micro-crawls through heavy AI computation
+      });
+    }, 150); // Updates every 150ms for uniform frame steps
+
     try {
-      const response = await fetch('http://localhost:5000/api/transcribe', {
-        method: 'POST',
-        body: formData,
+      const response = await axios.post('http://localhost:5000/api/transcribe', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        }
       });
 
-      const data = await response.json();
-      if (response.ok) {
-        // Strips hidden tabs, non-breaking spaces, and normal spaces from the very start of sentence 1
-        const cleanStartText = data.text.replace(/^[\s\u00A0\t]+/, '');
-        const formattedText = cleanStartText.replace(/\.\s+/g, '.\n\n');
-        
-        setTranscript(formattedText);
-        await generatePDF(formattedText, username, corridor);
-      } else {
-        setTranscript(`Error: ${data.error}`);
-      }
+      // Instantly wipe the loop context 
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+
+      const data = response.data;
+     
+      const cleanStartText = data.text.replace(/^[\s\u00A0\t]+/, '');
+      const formattedText = cleanStartText.replace(/\.\s+/g, '.\n\n');
+     
+      setTranscript(formattedText);
+      await generatePDF(formattedText, username, corridor);
+
     } catch (err) {
+      clearInterval(progressInterval);
       console.error("API Server Connection Lost:", err);
-      setTranscript("Error: Could not connect to transcription server.");
+      setTranscript("Error: Could not process network request or complete AI transcription loop.");
     } finally {
       setLoading(false);
     }
@@ -172,7 +185,7 @@ function App() {
 
       <main className="main-content">
         <form onSubmit={handleSubmit} className="upload-form">
-          
+         
           <div className="input-group">
             <label>Lead / User Name <span style={{ color: '#dc3545' }}>*</span></label>
             <input
@@ -200,7 +213,6 @@ function App() {
             </select>
           </div>
 
-          {/* DRAG AND DROP CAPABLE UPLOAD FIELD TARGET BOUNDARY */}
           <div className="input-group file-group">
             <label>Audio File Recording <span style={{ color: '#dc3545' }}>*</span></label>
             <label
@@ -225,12 +237,31 @@ function App() {
             </label>
           </div>
 
+          {/* DYNAMIC PROGRESS BAR TRACKING ENGINE */}
+          {loading && (
+            <div style={{ width: '100%', marginBottom: '25px', marginTop: '5px' }}>
+              <div style={{ width: '100%', backgroundColor: '#e2e8f0', borderRadius: '9999px', overflow: 'hidden', height: '8px' }}>
+                <div style={{
+                  width: `${uploadProgress}%`,
+                  backgroundColor: '#10b981',
+                  height: '100%',
+                  transition: 'width 0.1s ease-out'
+                }} />
+              </div>
+              <p style={{ fontSize: '13px', color: '#64748b', marginTop: '6px', textAlign: 'center', fontWeight: '500' }}>
+                {uploadProgress < 100
+                  ? `Streaming Network Payload: ${uploadProgress}%`
+                  : 'Payload Received. Waiting for Core AI Pipeline Execution...'}
+              </p>
+            </div>
+          )}
+
           <button
             type="submit"
             disabled={loading}
             className="submit-btn"
           >
-            {loading ? 'Transcribing...' : 'Transform Audio & Export'}
+            {loading ? 'Processing Pipeline...' : 'Transform Audio & Export'}
           </button>
         </form>
 
