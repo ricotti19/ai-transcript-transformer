@@ -10,16 +10,44 @@ function App() {
   const [corridor, setCorridor] = useState('');
   const [transcript, setTranscript] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
+  const [isDragging, setIsDragging] = useState(false); // Manages hover visualization
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+  // FAIL-SAFE VALIDATION: Checks extension characters to bypass broken browser MIME maps
+  const validateAndSetFile = (selectedFile) => {
+    if (!selectedFile) return;
+
+    // Parse extension by looking at the characters after the final dot
+    const fileNameParts = selectedFile.name.split('.');
+    const fileExtension = fileNameParts.length > 1 ? fileNameParts.pop().toLowerCase() : '';
+    
+    // Included mpeg to support standard compressed container layers
+    const allowedExtensions = ['mp3', 'wav', 'm4a', 'aac', 'ogg', 'wma', 'flac', 'mp4', 'webm', 'mpeg', 'mpg'];
+
+    // 1. Structural Extension Check
+    if (!allowedExtensions.includes(fileExtension)) {
+      alert(`Invalid format (.${fileExtension}). Please upload a valid audio asset (MP3, WAV, M4A, MPEG).`);
+      return;
+    }
+
+    // 2. Enforce File Size Limit (Max 25MB to save server bandwidth)
+    const maxSizeInBytes = 25 * 1024 * 1024; 
+    if (selectedFile.size > maxSizeInBytes) {
+      alert('File size exceeds the 25MB operational limit. Please optimize the asset.');
+      return;
+    }
+
+    setFile(selectedFile);
   };
 
+  const handleFileChange = (e) => {
+    validateAndSetFile(e.target.files[0]);
+  };
+
+  // Drag and Drop Event Interceptors with Propagation Overrides
   const handleDragOver = (e) => {
     e.preventDefault();
-    e.stopPropagation();
+    e.stopPropagation(); // Stops the browser from intercepting the asset natively
     setIsDragging(true);
   };
 
@@ -31,12 +59,14 @@ function App() {
 
   const handleDrop = (e) => {
     e.preventDefault();
-    e.stopPropagation();
+    e.stopPropagation(); // Forces the element box to maintain capture authority
     setIsDragging(false);
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const droppedFile = e.dataTransfer.files[0];
-      setFile(droppedFile);
+      
+      // Pass directly through our custom extension safeguard system
+      validateAndSetFile(droppedFile);
       console.log(`[DRAG & DROP FORCE SUCCESS] Injected asset state container: ${droppedFile.name}`);
     }
   };
@@ -44,11 +74,11 @@ function App() {
   // ISOLATED IN-MEMORY PRINT ENGINE FOR PDF LAYOUTS
   const generatePDF = async (transcriptText, clientName, operationalCorridor) => {
     const printContainer = document.createElement('div');
-   
+    
     printContainer.style.position = 'fixed';
     printContainer.style.top = '-9999px';
     printContainer.style.left = '-9999px';
-    printContainer.style.width = '794px';
+    printContainer.style.width = '794px'; // Standard pixel width ratio for precise printing layouts
     printContainer.style.padding = '60px';
     printContainer.style.backgroundColor = '#ffffff';
     printContainer.style.color = '#1e293b';
@@ -60,7 +90,7 @@ function App() {
         AI TRANSCRIPT ARCHIVE REPORT
       </h1>
       <div style="width: 100%; height: 3px; background-color: #10b981; margin-bottom: 24px;"></div>
-     
+      
       <div style="font-size: 14px; color: #10b981; line-height: 1.8; margin-bottom: 24px;">
         <div><strong>Generated On:</strong> ${new Date().toLocaleDateString()}</div>
         <div><strong>Assigned Lead:</strong> ${clientName || "Unassigned Inbound"}</div>
@@ -68,7 +98,7 @@ function App() {
       </div>
 
       <div style="width: 100%; height: 1px; background-color: #e2e2e2; margin-bottom: 24px;"></div>
-     
+      
       <h2 style="font-size: 18px; font-weight: 700; color: #1e293b; margin: 0 0 12px 0;">
         Voice-to-Text Transcript
       </h2>
@@ -79,7 +109,7 @@ function App() {
 
     try {
       const canvas = await html2canvas(printContainer, {
-        scale: 2,
+        scale: 2, // High resolution pixel scaling ratio
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff'
@@ -124,44 +154,41 @@ function App() {
 
     setLoading(true);
     setTranscript('');
-    setUploadProgress(0); // Clear track on run
+    setUploadProgress(0);
 
     const formData = new FormData();
     formData.append('audio', file);
     formData.append('username', username);
     formData.append('corridor', corridor);
 
-    // UNIFORM DECAY ENGINE
+    // UNIFORM PROGRESS DECAY ENGINE
     const progressInterval = setInterval(() => {
       setUploadProgress((prev) => {
         if (prev >= 99) {
           clearInterval(progressInterval);
           return 99; // Smooth ceiling until network completely settles
         }
-       
-        // Uniform dynamic stepping logic
         if (prev < 50) return prev + 2;      // Steady crawl to 50%
         if (prev < 80) return prev + 1;      // Gradual crawl to 80%
         return prev + 0.5;                   // Micro-crawls through heavy AI computation
       });
-    }, 150); // Updates every 150ms for uniform frame steps
+    }, 150);
 
     try {
+      // Switched to axios to map network hooks safely
       const response = await axios.post('http://localhost:5000/api/transcribe', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         }
       });
 
-      // Instantly wipe the loop context 
       clearInterval(progressInterval);
       setUploadProgress(100);
 
       const data = response.data;
-     
       const cleanStartText = data.text.replace(/^[\s\u00A0\t]+/, '');
       const formattedText = cleanStartText.replace(/\.\s+/g, '.\n\n');
-     
+      
       setTranscript(formattedText);
 
     } catch (err) {
@@ -182,7 +209,7 @@ function App() {
 
       <main className="main-content">
         <form onSubmit={handleSubmit} className="upload-form">
-         
+          
           <div className="input-group">
             <label>Lead / User Name <span style={{ color: '#dc3545' }}>*</span></label>
             <input
@@ -210,6 +237,7 @@ function App() {
             </select>
           </div>
 
+          {/* DRAG AND DROP CAPABLE UPLOAD FIELD TARGET BOUNDARY */}
           <div className="input-group file-group">
             <label>Audio File Recording <span style={{ color: '#dc3545' }}>*</span></label>
             <label
@@ -265,31 +293,35 @@ function App() {
         {transcript && (
           <div className="transcript-box">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-              <h3>Output Transcript:</h3>
+              <h3 style={{ margin: 0 }}>Output Transcript:</h3>
               
               {/* Dedicated Manual Download Trigger */}
               <button 
                 type="button"
                 onClick={() => generatePDF(transcript, username, corridor)}
                 style={{
-                  padding: '14px 16px',
+                  padding: '10px 16px',
                   backgroundColor: '#10b981',
                   color: '#fff',
                   border: 'none',
-                  borderRadius: '4px',
+                  borderRadius: '6px',
                   cursor: 'pointer',
                   fontSize: '14px',
-                  fontWeight: '600'
+                  fontWeight: '600',
+                  transition: 'background-color 0.2s ease'
                 }}
+                onMouseOver={(e) => e.target.style.backgroundColor = '#059669'}
+                onMouseOut={(e) => e.target.style.backgroundColor = '#10b981'}
               >
                 Download PDF Report
               </button>
             </div>
-            <p>{transcript}</p>
+            <p style={{ whiteSpace: 'pre-wrap' }}>{transcript}</p>
           </div>
         )}
       </main>
     </div>
   );
 }
+
 export default App;
