@@ -84,6 +84,6 @@ ai-transcript-transformer/
 
 ### Interface: 
 
-<img width="1914" height="1158" alt="image" src="https://github.com/user-attachments/assets/92a6c81c-b41c-4509-a6c4-b8e6ef183f7c" />
+<img width="1916" height="1151" alt="image" src="https://github.com/user-attachments/assets/6a664e9e-4104-4f51-8523-859cd92928db" />
 
 💡 Real-Time Telemetry Demo: Keep your terminal/Webhook url(s) open while running the app to watch the backend logs update in real time as files are uploaded and processed across the corridors.
