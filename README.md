@@ -9,6 +9,8 @@ AI supported audio to automatic text transcript (PDF) processing pipeline design
 - **Data Sovereignty & Mocking Validation**: Explicitly isolates routing configurations locally to run structural validation without incurring cloud egress penalties or spinning up redundant cross-region instances.
   
 - **Fail-Safe Directory Initialization**: The backend automatically asserts and creates local transient storage dependencies on launch, eliminating system initialization gaps.
+  
+- **Third-Party Webhook & CRM Integration (Simulated Lifecycle)**: The external pipeline architecture utilizes a decoupled backend mocking engine to simulate Zoho CRM payload logging without executing live cloud requests during local testing.
 
 ## 🚀 Technical Stack
 
@@ -84,3 +86,4 @@ ai-transcript-transformer/
 
 <img width="1914" height="1158" alt="image" src="https://github.com/user-attachments/assets/92a6c81c-b41c-4509-a6c4-b8e6ef183f7c" />
 
+💡 Real-Time Telemetry Demo: Keep your terminal/Webhook url(s) open while running the app to watch the backend logs update in real time as files are uploaded and processed across the corridors.
