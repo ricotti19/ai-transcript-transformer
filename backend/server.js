@@ -116,7 +116,7 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
     // Construct the enhanced payload with injected priority tags
     const crmPayload = {
       lead_name: leadName,                           // Dynamic client name
-      timestamp: new Date().toISOString(),           // Dynamic timestamp
+      timestamp: new Date().toLocaleString(),           // Dynamic timestamp
       audio_file_name: req.file.originalname,        // Dynamic file metadata
       transcript_text: transcript.text,              // Real converted string text
       status: "Automatic Logged Activity",
