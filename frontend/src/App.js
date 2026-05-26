@@ -11,7 +11,7 @@ function App() {
   const [transcript, setTranscript] = useState('');
   const [loading, setLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0); // New state to manage progress percentage
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -116,8 +116,7 @@ function App() {
     }
   };
 
-
-const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file || !username || !corridor) {
       return alert('Please ensure all required fields are filled out properly!');
@@ -164,7 +163,6 @@ const handleSubmit = async (e) => {
       const formattedText = cleanStartText.replace(/\.\s+/g, '.\n\n');
      
       setTranscript(formattedText);
-      await generatePDF(formattedText, username, corridor);
 
     } catch (err) {
       clearInterval(progressInterval);
@@ -180,7 +178,6 @@ const handleSubmit = async (e) => {
       <header className="app-header">
         <h1>AI Transcript Transformer</h1>
         <p>Convert your audio files into clean documents</p>
-        <h2 className="app-subheader">Automatic PDF Export</h2>
       </header>
 
       <main className="main-content">
@@ -267,7 +264,27 @@ const handleSubmit = async (e) => {
 
         {transcript && (
           <div className="transcript-box">
-            <h3>Output Transcript:</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+              <h3>Output Transcript:</h3>
+              
+              {/* Dedicated Manual Download Trigger */}
+              <button 
+                type="button"
+                onClick={() => generatePDF(transcript, username, corridor)}
+                style={{
+                  padding: '14px 16px',
+                  backgroundColor: '#10b981',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600'
+                }}
+              >
+                Download PDF Report
+              </button>
+            </div>
             <p>{transcript}</p>
           </div>
         )}
@@ -275,5 +292,4 @@ const handleSubmit = async (e) => {
     </div>
   );
 }
-
 export default App;
