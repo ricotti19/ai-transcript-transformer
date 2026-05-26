@@ -58,7 +58,7 @@ ai-transcript-transformer/
 
 * Setup webhooks in: Webhook.site
 
-* Create a unique URL and in .env, list as WEBHOOK_URL=........                       <------ replace with your URL on right
+* Create a unique URL and in .env, list as ZOHO_WEBHOOK_URL=........                       <------ replace with your URL on right
 
 ### Configure the Backend Gateway
 
