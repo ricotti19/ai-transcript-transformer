@@ -19,6 +19,16 @@ function App() {
   const [waveformPeaks, setWaveformPeaks] = useState([]);
   const audioRef = useRef(null);
 
+  // MEMORY CLEANUP FUNCTION FOR CASE OF MANY AUDIO OBJECT URLS ALL AT ONCE
+  React.useEffect(() => {
+    return () => {
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+        console.log("[CLEANUP] Audio memory cache successfully cleared.");
+      }
+    };
+  }, [audioUrl]);
+
   // GENERATE PSEUDO-RANDOM WAVEFORM PEAKS BASED ON FILE PROPERTIES
   const generateWaveformPreview = (selectedFile) => {
     const peaks = [];
