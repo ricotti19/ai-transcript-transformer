@@ -46,7 +46,7 @@ ai-transcript-transformer/
 
 * `git clone https://github.com/ricotti19/ai-transcript-transformer.git`
 
-* Create a new file in the root directory named exactly `.env`.
+* Create a new file in the root directory named exactly `.env` in backend directory.
 
 * First line should be: PORT=5000
 
