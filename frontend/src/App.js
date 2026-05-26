@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import axios from 'axios'; // Integrated for streaming upload metrics
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -12,6 +12,38 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false); // Manages hover visualization
   const [uploadProgress, setUploadProgress] = useState(0);
+
+  // WAVEFORM PREVIEW STATES
+  const [audioUrl, setAudioUrl] = useState('');
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [waveformPeaks, setWaveformPeaks] = useState([]);
+  const audioRef = useRef(null);
+
+  // GENERATE PSEUDO-RANDOM WAVEFORM PEAKS BASED ON FILE PROPERTIES
+  const generateWaveformPreview = (selectedFile) => {
+    const peaks = [];
+    const seed = selectedFile.size + selectedFile.name.length;
+    for (let i = 0; i < 40; i++) {
+      const pseudoRandomHeight = Math.abs(Math.sin(seed + i) * 85) + 15; // Min 15%, Max 100% height
+      peaks.push(pseudoRandomHeight);
+    }
+    setWaveformPeaks(peaks);
+  };
+
+  const toggleAudioPlayback = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current.play();
+      setIsPlaying(true);
+    }
+  };
+
+  const handleAudioEnded = () => {
+    setIsPlaying(false);
+  };
 
   // FAIL-SAFE VALIDATION: Checks extension characters to bypass broken browser MIME maps
   const validateAndSetFile = (selectedFile) => {
@@ -38,6 +70,13 @@ function App() {
     }
 
     setFile(selectedFile);
+
+  // Initialize local audio reader context
+    if (audioUrl) URL.revokeObjectURL(audioUrl); // Memory cleanup
+    const localUrl = URL.createObjectURL(selectedFile);
+    setAudioUrl(localUrl);
+    setIsPlaying(false);
+    generateWaveformPreview(selectedFile);
   };
 
   const handleFileChange = (e) => {
@@ -283,6 +322,72 @@ function App() {
               </div>
             </label>
           </div>
+
+          {/* DYNAMIC CLIENT-SIDE AUDIO WAVEFORM PREVIEW GENERATOR */}
+          {file && audioUrl && (
+            <div style={{
+              backgroundColor: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '8px',
+              padding: '16px',
+              marginBottom: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px'
+            }}>
+              {/* Native Audio Context Node Anchor */}
+              <audio ref={audioRef} src={audioUrl} onEnded={handleAudioEnded} style={{ display: 'none' }} />
+              
+              {/* Media Controller Action Button */}
+              <button
+                type="button"
+                onClick={toggleAudioPlayback}
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '50%',
+                  backgroundColor: isPlaying ? '#ef4444' : '#10b981',
+                  color: 'white',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '18px',
+                  fontWeight: 'bold',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                }}
+              >
+                {isPlaying ? '⏸' : '▶'}
+              </button>
+
+              {/* Dynamic Waveform Peak Matrix Visualizer Layer */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '3px',
+                flexGrow: 1,
+                height: '40px',
+                padding: '0 8px',
+                backgroundColor: '#ffffff',
+                border: '1px dashed #cbd5e1',
+                borderRadius: '6px'
+              }}>
+                {waveformPeaks.map((peakHeight, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      flexGrow: 1,
+                      height: `${peakHeight}%`,
+                      backgroundColor: isPlaying ? '#10b981' : '#94a3b8',
+                      borderRadius: '2px',
+                      transition: 'background-color 0.2s ease, height 0.3s ease'
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* DYNAMIC PROGRESS BAR TRACKING ENGINE */}
           {loading && (
