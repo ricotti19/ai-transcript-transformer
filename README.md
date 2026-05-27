@@ -1,6 +1,6 @@
 # AI Transcript Transformer
 
-AI supported audio to automatic text transcript (PDF) processing pipeline designed with localized multi-region backend corridors (Singapore Node, UAE Node, India Node) for data-sovereignty compliant content ingestion.
+AI supported audio to text transcript (PDF option built in) processing pipeline designed with localized multi-region backend corridors (Singapore Node, UAE Node, India Node) for data-sovereignty compliant content ingestion.
 
 (Must upload or drag-and-drop any audio file, enter name for identification, select region of business)
 
@@ -11,6 +11,8 @@ AI supported audio to automatic text transcript (PDF) processing pipeline design
 - **Fail-Safe Directory Initialization**: The backend automatically asserts and creates local transient storage dependencies on launch, eliminating system initialization gaps.
   
 - **Third-Party Webhook & CRM Integration (Simulated Lifecycle)**: The external pipeline architecture utilizes a decoupled backend mocking engine to simulate Zoho CRM payload logging without executing live cloud requests during local testing.
+
+- **Integrates Zoho CRM features**: Automates real-time lead creation, dynamic regional routing (US, India, UAE, Singapore), and structural activity logging via secure OAuth2 backend pipelines.
 
 ## 🚀 Technical Stack
 
