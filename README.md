@@ -1,6 +1,6 @@
 # AI Transcript Transformer
 
-AI supported audio to text transcript (PDF option built in) processing pipeline designed with localized multi-region backend corridors (Singapore Node, UAE Node, India Node) for data-sovereignty compliant content ingestion.
+AI supported audio to text transcript (PDF option built in) processing pipeline designed with localized multi-region backend corridors (US-Singapore Node, US-UAE Node, US-India Node) for data-sovereignty compliant content ingestion.
 
 (Must upload or drag-and-drop any audio file, enter name for identification, select region of business)
 
