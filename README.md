@@ -10,7 +10,7 @@ AI supported audio to text transcript (PDF option built in) processing pipeline 
   
 - **Fail-Safe Directory Initialization**: The backend automatically asserts and creates local transient storage dependencies on launch, eliminating system initialization gaps.
   
-- **Third-Party Webhook & CRM Integration (Simulated Lifecycle)**: The external pipeline architecture utilizes a decoupled backend mocking engine to simulate Zoho CRM payload logging without executing live cloud requests during local testing.
+- **Webhook Integration & Event Routing**: The backend dispatches structured transcript payloads through simulated webhook pipelines using Webhook.site for integration testing, payload inspection, and workflow validation.
 
 - **Integrates Zoho CRM features**: Automates real-time lead creation, dynamic regional routing (US, India, UAE, Singapore), and structural activity logging via secure OAuth2 backend pipelines.
 
