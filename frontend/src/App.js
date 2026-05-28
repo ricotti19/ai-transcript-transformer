@@ -68,7 +68,7 @@ function App() {
     const fileNameParts = selectedFile.name.split('.');
     const fileExtension = fileNameParts.length > 1 ? fileNameParts.pop().toLowerCase() : '';
      
-    // Included mpeg to support standard compressed container layers
+    // support standard compressed container layers
     const allowedExtensions = ['mp3', 'wav', 'm4a', 'aac', 'ogg', 'wma', 'flac', 'mp4', 'webm', 'mpeg', 'mpg'];
 
     // 1. Structural Extension Check
@@ -231,7 +231,7 @@ function App() {
     }, 250); 
 
     try {
-      // Switched to axios to map network hooks safely
+      // axios to map network hooks safely
       const response = await axios.post('http://localhost:5000/api/transcribe', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -312,7 +312,7 @@ function App() {
         {/* REAL-TIME OPERATIONS SYNC NOTIFICATION BANNER */}
         {isZohoSynced && (
           <div style={{
-            backgroundColor: '#0284c7',
+            backgroundColor: '#10b981',
             color: 'white',
             padding: '14px 20px',
             borderRadius: '8px',
@@ -326,7 +326,7 @@ function App() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <span style={{ fontSize: '20px' }}>⚡</span>
               <p style={{ margin: 0, fontWeight: '600', fontSize: '14px' }}>
-                Real-Time Sync Complete! Account Lead <span style={{ textDecoration: 'underline' }}>{username}</span> successfully provisioned to Zoho CRM via OAuth Pipeline.
+                Real-Time Sync Complete!
               </p>
             </div>
             <span style={{ 
@@ -529,7 +529,7 @@ function App() {
             {showLogDetails && (
               <pre style={{
                 backgroundColor: '#0f172a',
-                color: '#38bdf8',
+                color: '#10b981',
                 padding: '14px',
                 borderRadius: '6px',
                 marginTop: '12px',
