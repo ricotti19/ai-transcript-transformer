@@ -4,7 +4,7 @@ const multer = require('multer');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
-const axios = require('axios'); 
+const axios = require('axios');
 const { AssemblyAI } = require('assemblyai');
 
 const app = express();
@@ -46,6 +46,26 @@ function safeDelete(pathString) {
   }
 }
 
+// =========================================================================
+// DYNAMIC OAUTH ACCESS TOKEN RECOVERY FUNCTION
+// =========================================================================
+async function getZohoAccessToken() {
+  try {
+    const response = await axios.post('https://accounts.zoho.com/oauth/v2/token', null, {
+      params: {
+        grant_type: 'refresh_token',
+        client_id: process.env.ZOHO_CLIENT_ID,
+        client_secret: process.env.ZOHO_CLIENT_SECRET,
+        refresh_token: process.env.ZOHO_REFRESH_TOKEN
+      }
+    });
+    return response.data.access_token;
+  } catch (error) {
+    console.error('[ZOHO AUTH EXCEPTION] Couldn\'t rotate access keys:', error.response?.data || error.message);
+    throw new Error('Zoho Authentication Layer Failure');
+  }
+}
+
 // 5. The Core Transcription Route Engine with Automated CRM Sync
 app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
   const filePath = req.file ? req.file.path : null;
@@ -63,9 +83,9 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
 
     if (!leadName || !userCorridor) {
       console.error('[VALIDATION REJECTION] Missing required string fields in request body.');
-      safeDelete(filePath); 
-      return res.status(400).json({ 
-        error: "Server Validation Failed: Lead Name and Regional Corridor fields are strictly required parameters." 
+      safeDelete(filePath);
+      return res.status(400).json({
+        error: "Server Validation Failed: Lead Name and Regional Corridor fields are strictly required parameters."
       });
     }
 
@@ -75,12 +95,12 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
     // Intercepting audio using verified structural model setup
     const transcript = await client.transcripts.transcribe({
       audio: filePath,
-      speech_models: ['universal-3-pro'] 
+      speech_models: ['universal-3-pro']
     });
 
     if (transcript.status === 'error') {
       console.error(`[AI ERROR] Processing failed: ${transcript.error}`);
-      safeDelete(filePath); 
+      safeDelete(filePath);
       return res.status(500).json({ error: `AssemblyAI failed: ${transcript.error}` });
     }
 
@@ -89,24 +109,24 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
     // =========================================================================
     // LIVE DYNAMIC WEBHOOK PIPELINE WITH METADATA FILTERING ROUTING
     // =========================================================================
-    
+   
     // Establish fallback default endpoint configurations
-    let targetWebhookUrl = process.env.ZOHO_WEBHOOK_URL;
+    let targetWebhookUrl = process.env.WEBHOOK_URL || process.env.INDIA_WEBHOOK_URL;
     let routingPriority = "Standard Routing";
 
     // Run Metadata Filtering: Inspect the string data passed from React client
     const normalizedCorridor = userCorridor.toLowerCase();
 
     if (normalizedCorridor.includes('india')) {
-      targetWebhookUrl = process.env.ZOHO_INDIA_WEBHOOK_URL;
+      targetWebhookUrl = process.env.INDIA_WEBHOOK_URL;
       routingPriority = "High Priority - South Asia Ops";
       console.log(`[FILTER MATCH] Routing payload dynamically to the India Operations cluster.`);
     } else if (normalizedCorridor.includes('singapore')) {
-      targetWebhookUrl = process.env.ZOHO_SINGAPORE_WEBHOOK_URL;
+      targetWebhookUrl = process.env.SINGAPORE_WEBHOOK_URL;
       routingPriority = "High Priority - APAC Sales";
       console.log(`[FILTER MATCH] Routing payload dynamically to the Singapore Corporate cluster.`);
     } else if (normalizedCorridor.includes('uae') || normalizedCorridor.includes('dubai') || normalizedCorridor.includes('emirates')) {
-      targetWebhookUrl = process.env.ZOHO_UAE_WEBHOOK_URL;
+      targetWebhookUrl = process.env.UAE_WEBHOOK_URL;
       routingPriority = "High Priority - EMEA Hub";
       console.log(`[FILTER MATCH] Routing payload dynamically to the UAE/EMEA cluster.`);
     } else {
@@ -126,20 +146,51 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
 
     console.log(`[ZOHO PIPELINE] Asynchronously dispatching payload package via dynamic filtering layer...`);
     console.log("LIVE DYNAMIC PAYLOAD DATA:", JSON.stringify(crmPayload, null, 2));
-    
+   
     // Post out data directly to the dynamically selected cloud link
-    axios.post(targetWebhookUrl, crmPayload, { 
-      headers: { 'Content-Type': 'application/json' },
-      timeout: 3000 
-    })
-    .then(() => {
-      console.log(`[ZOHO SUCCESS] Dynamic filtered entry successfully broadcasted onto the web for ${leadName}!`);
-    })
-    .catch((webhookError) => {
-      // Captures failures cleanly in the background without breaking client response loops
-      console.error(`[ZOHO PENDING WARNING] Background dispatch paused: ${webhookError.message}`);
-    });
-    
+    if (targetWebhookUrl) {
+      axios.post(targetWebhookUrl, crmPayload, {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 3000
+      })
+      .then(() => {
+        console.log(`[ZOHO SUCCESS] Dynamic filtered entry successfully broadcasted onto the web for ${leadName}!`);
+      })
+      .catch((webhookError) => {
+        console.error(`[ZOHO PENDING WARNING] Background dispatch paused: ${webhookError.message}`);
+      });
+    }
+
+    // =========================================================================
+    // NATIVE LIVE ZOHO CRM LEAD INJECTION COUPLING
+    // =========================================================================
+    try {
+      console.log(`[CRM INTEGRATION] Exchanging persistent refresh token for an active token session...`);
+      const activeAccessToken = await getZohoAccessToken();
+
+      const zohoRecordPayload = {
+        data: [
+          {
+            "Last_Name": leadName,
+            "Company": `${userCorridor} Corridor Call Log`,
+            "Description": `[System Priority Tag: ${routingPriority}]\n\nAudio Asset Name: ${req.file.originalname}\n\nAutomated Call Transcript:\n"${transcript.text}"`,
+            "Lead_Source": "AI Transcript Transformer"
+          }
+        ]
+      };
+
+      console.log(`[CRM INTEGRATION] Transmitting fresh contact sheet entry parameters onto Zoho endpoints...`);
+      const zohoResponse = await axios.post('https://www.zohoapis.com/crm/v2/Leads', zohoRecordPayload, {
+        headers: {
+          'Authorization': `Zoho-oauthtoken ${activeAccessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log(`[CRM INTEGRATION SUCCESS] Server response accepted. Profile lead mapped for: ${leadName}`);
+    } catch (crmApiError) {
+      console.error(`[CRM INTEGRATION WARNING] Sync skipped for this execution block:`, crmApiError.response?.data || crmApiError.message);
+    }
+   
     // File is explicitly purged from disk storage now that transcription is finished
     safeDelete(filePath);
 
@@ -157,6 +208,6 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
 app.listen(PORT, () => {
   console.log(`===================================================`);
   console.log(` BACKEND ENGINE ONLINE AND ACTIVE ON PORT: ${PORT}`);
-  console.log(` MULTI-REGION METADATA FILTER ROUTER READY`);
+  console.log(` LIVE AUTOMATED ZOHO CRM INJECTION MODULE ACTIVE`);
   console.log(`===================================================`);
 });
