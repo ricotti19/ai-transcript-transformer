@@ -92,10 +92,10 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
     console.log(`[FILE RECEIVED] Successfully intercepted binary audio: ${req.file.originalname}`);
     console.log(`[PIPELINE] Routing stream for verified client: ${leadName} via ${userCorridor}...`);
 
-    // Intercepting audio using verified structural model setup
+    // STEP 1: Generate pristine core transcript using modern model array settings
     const transcript = await client.transcripts.transcribe({
       audio: filePath,
-      speech_models: ['universal-3-pro']
+      speech_models: ["universal-3-pro", "universal-2"]
     });
 
     if (transcript.status === 'error') {
@@ -104,17 +104,48 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
       return res.status(500).json({ error: `AssemblyAI failed: ${transcript.error}` });
     }
 
-    console.log(`[SUCCESS] Transcription completed successfully!`);
+    if (!transcript || !transcript.text) {
+      safeDelete(filePath);
+      return res.status(500).json({ error: "AssemblyAI processing completed but returned an empty text payload." });
+    }
+
+    console.log(`[SUCCESS] Text transcription completed successfully.`);
+
+    // STEP 2: Leverage modern LLM Gateway to build a safe, isolated paragraph summary -- ** STILL IN PROGRESS  **
+    let generatedSummary = "No summary returned from pipeline.";
+    try {
+      console.log(`[AI LLM GATEWAY] Querying integrated LLM layer for narrative summary context...`);
+      const llmResponse = await axios.post('https://llm-gateway.assemblyai.com/v1/chat/completions', {
+        model: 'claude-sonnet-4-6',
+        messages: [
+          { 
+            role: 'user', 
+            content: 'Provide a clean, informative, concise one-paragraph summary of this recording:\n\n{{ transcript }}' 
+          }
+        ],
+        transcript_id: transcript.id,
+        max_tokens: 500
+      }, {
+        headers: { 
+          'authorization': process.env.ASSEMBLYAI_API_KEY,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (llmResponse.data?.choices?.[0]?.message?.content) {
+        generatedSummary = llmResponse.data.choices[0].message.content.trim();
+        console.log(`[SUCCESS] Narrative text summarization completed.`);
+      }
+    } catch (summaryError) {
+      console.error(`[AI SUMMARIZATION WARNING] LLM layer fell back:`, summaryError.message);
+    }
 
     // =========================================================================
     // LIVE DYNAMIC WEBHOOK PIPELINE WITH METADATA FILTERING ROUTING
     // =========================================================================
-   
-    // Establish fallback default endpoint configurations
     let targetWebhookUrl = process.env.WEBHOOK_URL || process.env.INDIA_WEBHOOK_URL;
     let routingPriority = "Standard Routing";
 
-    // Run Metadata Filtering: Inspect the string data passed from React client
     const normalizedCorridor = userCorridor.toLowerCase();
 
     if (normalizedCorridor.includes('india')) {
@@ -133,21 +164,19 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
       console.log(`[ROUTING FALLBACK] No regional metadata matching rules triggered. Reverting to baseline route.`);
     }
 
-    // Construct the enhanced payload with injected priority tags
     const crmPayload = {
-      lead_name: leadName,                           // Dynamic client name
-      timestamp: new Date().toLocaleString(),           // Dynamic timestamp
-      audio_file_name: req.file.originalname,        // Dynamic file metadata
-      transcript_text: transcript.text,              // Real converted string text
+      lead_name: leadName,
+      timestamp: new Date().toLocaleString(),
+      audio_file_name: req.file.originalname,
+      transcript_text: transcript.text,
+      summary_text: generatedSummary,
       status: "Automatic Logged Activity",
-      corridor_origin: userCorridor,                  // Dynamic route marker
-      workflow_priority: routingPriority            // Injected filtering evaluation tag
+      corridor_origin: userCorridor,
+      workflow_priority: routingPriority
     };
 
     console.log(`[ZOHO PIPELINE] Asynchronously dispatching payload package via dynamic filtering layer...`);
-    console.log("LIVE DYNAMIC PAYLOAD DATA:", JSON.stringify(crmPayload, null, 2));
-   
-    // Post out data directly to the dynamically selected cloud link
+    
     if (targetWebhookUrl) {
       axios.post(targetWebhookUrl, crmPayload, {
         headers: { 'Content-Type': 'application/json' },
@@ -164,23 +193,29 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
     // =========================================================================
     // NATIVE LIVE ZOHO CRM LEAD INJECTION COUPLING
     // =========================================================================
-    try {
+    try { 
       console.log(`[CRM INTEGRATION] Exchanging persistent refresh token for an active token session...`);
       const activeAccessToken = await getZohoAccessToken();
+
+      let cleanRegion = "Other Corridor";
+      if (normalizedCorridor.includes('india')) cleanRegion = "US-India";
+      else if (normalizedCorridor.includes('singapore')) cleanRegion = "US-Singapore";
+      else if (normalizedCorridor.includes('uae') || normalizedCorridor.includes('dubai') || normalizedCorridor.includes('emirates')) cleanRegion = "US-UAE";
 
       const zohoRecordPayload = {
         data: [
           {
             "Last_Name": leadName,
             "Company": `${userCorridor} Corridor Call Log`,
-            "Description": `[System Priority Tag: ${routingPriority}]\n\nAudio Asset Name: ${req.file.originalname}\n\nAutomated Call Transcript:\n"${transcript.text}"`,
-            "Lead_Source": "AI Transcript Transformer"
+            "Description": `[System Priority Tag: ${routingPriority}]\n\nAudio Asset Name: ${req.file.originalname}\n\nAutomated Call Summary:\n"${generatedSummary}"\n\nFull Transcript:\n"${transcript.text}"`,
+            "Lead_Source": "AI Transcript Transformer",
+            "Industry": cleanRegion
           }
         ]
       };
 
       console.log(`[CRM INTEGRATION] Transmitting fresh contact sheet entry parameters onto Zoho endpoints...`);
-      const zohoResponse = await axios.post('https://www.zohoapis.com/crm/v2/Leads', zohoRecordPayload, {
+      await axios.post('https://www.zohoapis.com/crm/v2/Leads', zohoRecordPayload, {
         headers: {
           'Authorization': `Zoho-oauthtoken ${activeAccessToken}`,
           'Content-Type': 'application/json'
@@ -189,15 +224,16 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
       console.log(`[CRM INTEGRATION SUCCESS] Server response accepted. Profile lead mapped for: ${leadName}`);
     } catch (crmApiError) {
       console.error(`[CRM INTEGRATION WARNING] Sync skipped for this execution block:`, crmApiError.response?.data || crmApiError.message);
-    }
-   
-    // File is explicitly purged from disk storage now that transcription is finished
+    }  
+
+    // Final clean exit delivery point
     safeDelete(filePath);
-
-    // Return final processed text payload to update React state engine
-    return res.status(200).json({ text: transcript.text });
-
-  } catch (error) {
+    return res.status(200).json({ 
+      text: transcript.text,
+      summary: generatedSummary
+    });
+  } 
+  catch (error) {
     console.error("[CRITICAL ROUTE EXCEPTION] Pipeline failed:", error);
     if (filePath) safeDelete(filePath);
     return res.status(500).json({ error: "Internal server pipeline failure during processing." });
