@@ -4,6 +4,7 @@ import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import './App.css';
 
+
 function App() {
   const [file, setFile] = useState(null);
   const [username, setUsername] = useState('');
@@ -13,10 +14,12 @@ function App() {
   const [isDragging, setIsDragging] = useState(false); // Manages hover visualization
   const [uploadProgress, setUploadProgress] = useState(0);
 
+
   // STATES FOR INTERACTIVE BACKEND DISPATCH LOG TELEMETRY
   const [latestLog, setLatestLog] = useState(null);
   const [showLogDetails, setShowLogDetails] = useState(false);
   const [isZohoSynced, setIsZohoSynced] = useState(false);
+
 
   // WAVEFORM PREVIEW STATES
   const [audioUrl, setAudioUrl] = useState('');
@@ -34,6 +37,7 @@ function App() {
     };
   }, [audioUrl]);
 
+
   // GENERATE PSEUDO-RANDOM WAVEFORM PEAKS BASED ON FILE PROPERTIES
   const generateWaveformPreview = (selectedFile) => {
     const peaks = [];
@@ -44,6 +48,7 @@ function App() {
     }
     setWaveformPeaks(peaks);
   };
+
 
   const toggleAudioPlayback = () => {
     if (!audioRef.current) return;
@@ -56,13 +61,16 @@ function App() {
     }
   };
 
+
   const handleAudioEnded = () => {
     setIsPlaying(false);
   };
 
+
   // FAIL-SAFE VALIDATION: Checks extension characters to bypass broken browser MIME maps
   const validateAndSetFile = (selectedFile) => {
     if (!selectedFile) return;
+
 
     // Parse extension by looking at the characters after the final dot
     const fileNameParts = selectedFile.name.split('.');
@@ -71,11 +79,13 @@ function App() {
     // support standard compressed container layers
     const allowedExtensions = ['mp3', 'wav', 'm4a', 'aac', 'ogg', 'wma', 'flac', 'mp4', 'webm', 'mpeg', 'mpg'];
 
+
     // 1. Structural Extension Check
     if (!allowedExtensions.includes(fileExtension)) {
       alert(`Invalid format (.${fileExtension}). Please upload a valid audio asset (MP3, WAV, M4A, MPEG).`);
       return;
     }
+
 
     // 2. Enforce File Size Limit (Max 25MB to save server bandwidth)
     const maxSizeInBytes = 25 * 1024 * 1024;
@@ -84,7 +94,9 @@ function App() {
       return;
     }
 
+
     setFile(selectedFile);
+
 
     // Initialize local audio reader context
     if (audioUrl) URL.revokeObjectURL(audioUrl); // Memory cleanup
@@ -94,9 +106,11 @@ function App() {
     generateWaveformPreview(selectedFile);
   };
 
+
   const handleFileChange = (e) => {
     validateAndSetFile(e.target.files[0]);
   };
+
 
   // Drag and Drop Event Interceptors with Propagation Overrides
   const handleDragOver = (e) => {
@@ -105,16 +119,19 @@ function App() {
     setIsDragging(true);
   };
 
+
   const handleDragLeave = (e) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
   };
 
+
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation(); // Forces the element box to maintain capture authority
     setIsDragging(false);
+
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const droppedFile = e.dataTransfer.files[0];
@@ -124,6 +141,7 @@ function App() {
       console.log(`[DRAG & DROP FORCE SUCCESS] Injected asset state container: ${droppedFile.name}`);
     }
   };
+
 
   // ISOLATED IN-MEMORY PRINT ENGINE FOR PDF LAYOUTS
   const generatePDF = async (transcriptText, clientName, operationalCorridor) => {
@@ -139,6 +157,7 @@ function App() {
     printContainer.style.fontFamily = "'Manrope', sans-serif";
     printContainer.style.boxSizing = 'border-box';
 
+
     printContainer.innerHTML = `
       <h1 style="font-size: 26px; font-weight: 800; margin: 0 0 8px 0; color: #0f172a; letter-spacing: -0.02em;">
         AI TRANSCRIPT ARCHIVE REPORT
@@ -151,6 +170,7 @@ function App() {
         <div><strong>Routing Infrastructure:</strong> ${operationalCorridor || "Standard Route"}</div>
       </div>
 
+
       <div style="width: 100%; height: 1px; background-color: #e2e2e2; margin-bottom: 24px;"></div>
        
       <h2 style="font-size: 18px; font-weight: 700; color: #1e293b; margin: 0 0 12px 0;">
@@ -159,17 +179,21 @@ function App() {
       <p style="font-size: 14px; color: #334155; line-height: 1.8; text-align: justify; white-space: pre-wrap; margin: 0;">${transcriptText}</p>
     `;
 
+
     document.body.appendChild(printContainer);
+
 
     try {
       const canvas = await html2canvas(printContainer, {
-        scale: 2, 
+        scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff'
       });
 
+
       document.body.removeChild(printContainer);
+
 
       const imgData = canvas.toDataURL('image/jpeg', 1.0);
       const pdf = new jsPDF('p', 'mm', 'a4');
@@ -179,8 +203,10 @@ function App() {
       let heightLeft = imgHeight;
       let position = 0;
 
+
       pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
+
 
       while (heightLeft >= 0) {
         position = heightLeft - imgHeight;
@@ -189,8 +215,10 @@ function App() {
         heightLeft -= pageHeight;
       }
 
+
       const cleanFileName = `Transcript_${(clientName || "Export").replace(/\s+/g, '_')}.pdf`;
       pdf.save(cleanFileName);
+
 
     } catch (error) {
       console.error("PDF generation layout runtime crash:", error);
@@ -200,35 +228,42 @@ function App() {
     }
   };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file || !username || !corridor) {
       return alert('Please ensure all required fields are filled out properly!');
     }
 
+
     setLoading(true);
     setTranscript('');
     setLatestLog(null); // Clear old log out of layout during new network streams
     setUploadProgress(0);
+
 
     const formData = new FormData();
     formData.append('audio', file);
     formData.append('username', username);
     formData.append('corridor', corridor);
 
+
     // TAB-RESILIENT PROGRESS ENGINE
     const startTime = Date.now();
     const expectedDuration = 6000; // Estimated 6 seconds for pipeline completion
+
 
     const progressInterval = setInterval(() => {
       const timeElapsed = Date.now() - startTime;
       const theoreticalProgress = Math.min(Math.round((timeElapsed / expectedDuration) * 95), 95);
 
+
       setUploadProgress((prev) => {
         if (theoreticalProgress > prev) return theoreticalProgress;
         return prev;
       });
-    }, 250); 
+    }, 250);
+
 
     try {
       // axios to map network hooks safely
@@ -238,15 +273,18 @@ function App() {
         }
       });
 
+
       clearInterval(progressInterval);
       setUploadProgress(100);
 
+
       const data = response.data;
+
 
       // 1. Remove junk whitespace from beginning
       const cleanStartText = data.text.replace(/^[\s\u00A0\t]+/, '');
        
-      // 2. Protect abbreviations 
+      // 2. Protect abbreviations
       const tokenizedText = cleanStartText.replace(
         /\b(?:[A-Z]\.){2,}/g,
         (match) => match.replace(/\./g, '___PERIOD___')
@@ -269,11 +307,13 @@ function App() {
        
       setTranscript(formattedText);
 
+
       let calculatedPriority = "Standard Routing";
       const checkCorridor = corridor.toLowerCase();
       if (checkCorridor.includes('india')) calculatedPriority = "High Priority - South Asia Ops";
       else if (checkCorridor.includes('singapore')) calculatedPriority = "High Priority - APAC Sales";
       else if (checkCorridor.includes('uae')) calculatedPriority = "High Priority - EMEA Hub";
+
 
       const telemetryPayload = {
         lead_name: username.trim(),
@@ -284,13 +324,18 @@ function App() {
         corridor_origin: corridor,
         workflow_priority: calculatedPriority
       };
+     
+      setTranscript(formattedText);
+
 
       setLatestLog(telemetryPayload); // tells React to render card
+
 
       setIsZohoSynced(true);
       setTimeout(() => {
         setIsZohoSynced(false);
       }, 8000); // Keep banner visible for 8 seconds
+
 
     } catch (err) {
       clearInterval(progressInterval);
@@ -301,12 +346,14 @@ function App() {
     }
   };
 
+
   return (
     <div className="app-container">
       <header className="app-header">
         <h1>AI Transcript Transformer</h1>
         <p>Convert your audio files into clean documents</p>
       </header>
+
 
       <main className="main-content">
         {/* REAL-TIME OPERATIONS SYNC NOTIFICATION BANNER */}
@@ -329,10 +376,10 @@ function App() {
                 Real-Time Sync Complete!
               </p>
             </div>
-            <span style={{ 
-              fontSize: '11px', 
-              backgroundColor: 'rgba(255,255,255,0.2)', 
-              padding: '4px 8px', 
+            <span style={{
+              fontSize: '11px',
+              backgroundColor: 'rgba(255,255,255,0.2)',
+              padding: '4px 8px',
               borderRadius: '4px',
               fontWeight: '700'
             }}>
@@ -354,6 +401,7 @@ function App() {
             />
           </div>
 
+
           <div className="input-group">
             <label>Regional Corridor Origin <span style={{ color: '#dc3545' }}>*</span></label>
             <select
@@ -368,6 +416,7 @@ function App() {
               <option value="US-Singapore Regional Trunk">US-Singapore Regional Trunk</option>
             </select>
           </div>
+
 
           {/* DRAG AND DROP CAPABLE UPLOAD FIELD TARGET BOUNDARY */}
           <div className="input-group file-group">
@@ -393,6 +442,7 @@ function App() {
               </div>
             </label>
           </div>
+
 
           {/* DYNAMIC CLIENT-SIDE AUDIO WAVEFORM PREVIEW GENERATOR */}
           {file && audioUrl && (
@@ -432,6 +482,7 @@ function App() {
                 {isPlaying ? '⏸' : '▶'}
               </button>
 
+
               {/* Dynamic Waveform Peak Matrix Visualizer Layer */}
               <div style={{
                 display: 'flex',
@@ -460,6 +511,7 @@ function App() {
             </div>
           )}
 
+
           {/* DYNAMIC PROGRESS BAR TRACKING ENGINE */}
           {loading && (
             <div style={{ width: '100%', marginBottom: '25px', marginTop: '5px' }}>
@@ -479,6 +531,7 @@ function App() {
             </div>
           )}
 
+
           <button
             type="submit"
             disabled={loading}
@@ -487,6 +540,7 @@ function App() {
             {loading ? 'Processing Pipeline...' : 'Transform Audio & Export'}
           </button>
         </form>
+
 
         {/* LIVE CRM PIPELINE METADATA EVALUATOR CARD LAYOUT */}
         {latestLog && (
@@ -506,7 +560,7 @@ function App() {
                   Webhook Event Logged
                 </h4>
               </div>
-              <button 
+              <button
                 type="button"
                 onClick={() => setShowLogDetails(!showLogDetails)}
                 style={{
@@ -525,6 +579,7 @@ function App() {
                 {showLogDetails ? "Hide Schema" : "Click to see newest log"}
               </button>
             </div>
+
 
             {showLogDetails && (
               <pre style={{
@@ -545,32 +600,36 @@ function App() {
           </div>
         )}
 
+
         {transcript && (
           <div className="transcript-box">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
               <h3 style={{ margin: 0 }}>Output Transcript:</h3>
                
-              {/* Dedicated Manual Download Trigger */}
-              <button
-                type="button"
-                onClick={() => generatePDF(transcript, username, corridor)}
-                style={{
-                  padding: '10px 16px',
-                  backgroundColor: '#10b981',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  transition: 'background-color 0.2s ease'
-                }}
-                onMouseOver={(e) => e.target.style.backgroundColor = '#059669'}
-                onMouseOut={(e) => e.target.style.backgroundColor = '#10b981'}
-              >
-                Download PDF Report
-              </button>
+              {/* Group buttons together */}
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => generatePDF(transcript, username, corridor)}
+                  style={{
+                    padding: '10px 16px',
+                    backgroundColor: '#10b981',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    transition: 'background-color 0.2s ease'
+                  }}
+                  onMouseOver={(e) => e.target.style.backgroundColor = '#059669'}
+                  onMouseOut={(e) => e.target.style.backgroundColor = '#10b981'}
+                >
+                  Download PDF Report
+                </button>
+              </div>
             </div>
+
             <p style={{ whiteSpace: 'pre-wrap' }}>{transcript}</p>
           </div>
         )}
@@ -578,5 +637,4 @@ function App() {
     </div>
   );
 }
-
 export default App;
